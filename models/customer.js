@@ -7,7 +7,7 @@ const customerSchema = new Schema({
     numDni: {type: String, maxlength: 20},
     address: {type: String, maxlength: 70},
     tel: {type:String, maxlength: 20},
-    email: {type: String, maxlength: 50, unique: true, required: true},
+    email: {type: String, maxlength: 50, required: true},
     status: {type:Number, default: 1},
     createdAt: {type: Date, default: Date.now}
 });
