@@ -14,5 +14,6 @@ router.delete('/remove', auth.verifyAdmin, userCtrl.remove);
 router.put('/activate', auth.verifyAdmin, userCtrl.activate);
 router.put('/deactivate', auth.verifyAdmin, userCtrl.deactivate);
 router.post('/login', userCtrl.login);
+router.post('/forgot-password', userCtrl.forgotPassword)
 
 export default router;

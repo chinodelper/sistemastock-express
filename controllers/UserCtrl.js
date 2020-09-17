@@ -1,6 +1,8 @@
 import models from '../models';
 import bcrypt from 'bcryptjs';
 import token from '../services/token';
+import nodemailer from 'nodemailer'
+import config from '../config';
 
 // add user
 let add = async (req, res, next) => {
@@ -159,6 +161,50 @@ let login = async (req, res, next) => {
     }
 }
 
+let forgotPassword = async(req, res, next) => {
+
+    const {email} = req.body;
+    let user = await models.User.findOne({ email }).populate('customer',{name:1, _id:1});
+    if(!user){ // verificamos si el usuario existe
+        return res.status(400).json({error: "User not found"})
+    }
+
+    let tokenReturn = await token.encode(user._id, user.rol, user.email, user.name, user.customer._id, user.customer.name); // generamos token con JWT
+    const data = {
+        from: 'Damian Del Percio <chinodelper@gmail.com>',
+        to: email,
+        subject: 'Blanqueo de contraseña solicitada',
+        html: `
+            <h2>Haga click en el siguiente link para continuar con el proceso.</h2>
+            <p>${config.domain}/reset/${tokenReturn}</p>
+        `
+    }
+
+    const smtpTransport = nodemailer.createTransport("SMTP", {
+        service: "Gmail",
+        auth: {
+            user: ",
+            pass: ""
+        }
+    });
+
+    return await models.User.updateOne({resetLink: tokenReturn}, (err, success) => {
+        if(err){
+            return res.status(400).json({error: 'reset password link error'});
+        } else {
+            smtpTransport.sendMail(data, (error, response) => {
+                if(error){
+                    console.log('failed to send email')
+                    return res.status(500).json({error: 'failed to send email'})
+                } else {
+                    console.log('email sent succesfully')
+                    return res.status(200).json({error: 'email sent succesfully'})
+                }
+            })
+        }
+    })
+}
+
 export default {
     add,
     query,
@@ -167,5 +213,6 @@ export default {
     remove,
     activate,
     deactivate,
-    login
+    login,
+    forgotPassword
 }
